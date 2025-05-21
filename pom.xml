@@ -30,7 +30,7 @@
     </modules>
     <groupId>org.wso2.am.analytics.publisher</groupId>
     <artifactId>apim-analytics-publisher-parent</artifactId>
-    <version>1.2.24-SNAPSHOT</version>
+    <version>1.2.23</version>
     <name>APIM Analytics Publisher</name>
     <dependencyManagement>
         <dependencies>

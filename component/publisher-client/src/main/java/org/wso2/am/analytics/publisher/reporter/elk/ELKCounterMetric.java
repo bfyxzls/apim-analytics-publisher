@@ -26,6 +26,7 @@ import org.wso2.am.analytics.publisher.reporter.CounterMetric;
 import org.wso2.am.analytics.publisher.reporter.GenericInputValidator;
 import org.wso2.am.analytics.publisher.reporter.MetricEventBuilder;
 import org.wso2.am.analytics.publisher.reporter.MetricSchema;
+import org.wso2.am.analytics.publisher.util.KafkaMqProducer;
 
 import java.util.Map;
 
@@ -48,9 +49,14 @@ public class ELKCounterMetric implements CounterMetric {
     public int incrementCount(MetricEventBuilder builder) throws MetricReportingException {
         Map<String, Object> event = builder.build();
         String jsonString = gson.toJson(event);
-
+        String jsonStringResult = jsonString.replaceAll("[\r\n]", "");
         log.info("apimMetrics: " + name.replaceAll("[\r\n]", "") + ", properties :" +
-                jsonString.replaceAll("[\r\n]", ""));
+                jsonStringResult);
+        try {
+            KafkaMqProducer.publishEvent("apim-metrics", jsonStringResult);
+        } catch (Exception e) {
+            log.error("kafka error", e);
+        }
         return 0;
     }
 
