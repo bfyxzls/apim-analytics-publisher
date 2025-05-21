@@ -26,7 +26,11 @@ import org.wso2.am.analytics.publisher.reporter.CounterMetric;
 import org.wso2.am.analytics.publisher.reporter.GenericInputValidator;
 import org.wso2.am.analytics.publisher.reporter.MetricEventBuilder;
 import org.wso2.am.analytics.publisher.reporter.MetricSchema;
+import org.wso2.am.analytics.publisher.util.ConfigFactory;
+import org.wso2.am.analytics.publisher.util.KafkaMqProducer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -34,6 +38,7 @@ import java.util.Map;
  */
 public class ELKCounterMetric implements CounterMetric {
     private static final Logger log = LogManager.getLogger(ELKCounterMetric.class);
+    private static final String topic=ConfigFactory.getInstance().getStrPropertyValue("KAFKA_METRICS_TOPIC");
     private final String name;
     private final Gson gson;
     private MetricSchema schema;
@@ -47,10 +52,18 @@ public class ELKCounterMetric implements CounterMetric {
     @Override
     public int incrementCount(MetricEventBuilder builder) throws MetricReportingException {
         Map<String, Object> event = builder.build();
-        String jsonString = gson.toJson(event);
+        event.put("logDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        event.put("requestTimestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
+        String jsonString = gson.toJson(event);
+        String jsonStringResult = jsonString.replaceAll("[\r\n]", "");
         log.info("apimMetrics: " + name.replaceAll("[\r\n]", "") + ", properties :" +
-                jsonString.replaceAll("[\r\n]", ""));
+                jsonStringResult);
+        try {
+            KafkaMqProducer.publishEvent(topic, jsonStringResult);
+        } catch (Exception e) {
+            log.error("kafka error", e);
+        }
         return 0;
     }
 
