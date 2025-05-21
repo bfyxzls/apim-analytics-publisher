@@ -1,7 +1,7 @@
 # apim-analytics-publisher
 This repo contains the data publisher for Choreo Analytics cloud. Data publisher is responsible for sending analytics
- data into Azure cloud for processing and visualization. 
-
+ data into Azure cloud for processing and visualization.
+mvn clean install -DskipTests -Dcheckstyle.skip
 ## About this repository
 
 |  Branch | Build Status(Jenkins) | 
