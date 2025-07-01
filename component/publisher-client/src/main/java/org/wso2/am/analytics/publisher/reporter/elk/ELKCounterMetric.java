@@ -28,6 +28,9 @@ import org.wso2.am.analytics.publisher.reporter.MetricEventBuilder;
 import org.wso2.am.analytics.publisher.reporter.MetricSchema;
 import org.wso2.am.analytics.publisher.util.KafkaMqProducer;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -48,6 +51,9 @@ public class ELKCounterMetric implements CounterMetric {
     @Override
     public int incrementCount(MetricEventBuilder builder) throws MetricReportingException {
         Map<String, Object> event = builder.build();
+        event.put("logDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        event.put("requestTimestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+
         String jsonString = gson.toJson(event);
         String jsonStringResult = jsonString.replaceAll("[\r\n]", "");
         log.info("apimMetrics: " + name.replaceAll("[\r\n]", "") + ", properties :" +
