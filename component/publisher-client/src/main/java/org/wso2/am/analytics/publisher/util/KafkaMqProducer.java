@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
  */
 public class KafkaMqProducer {
 
-  private final static String BOOTSTRAP_SERVER = ConfigFactory.getInstance().getStrPropertyValue("kafka.host");
+  private final static String BOOTSTRAP_SERVER = ConfigFactory.getInstance().getStrPropertyValue("KAFKA_HOST");
   private static final Logger logger = LogManager.getLogger(KafkaMqProducer.class);
   private static KafkaProducer<String, String> producer;
   private static ExecutorService executorService = Executors.newFixedThreadPool(4);
