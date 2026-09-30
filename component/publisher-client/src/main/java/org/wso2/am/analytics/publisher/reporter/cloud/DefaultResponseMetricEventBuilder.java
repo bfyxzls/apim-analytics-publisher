@@ -129,22 +129,47 @@ public class DefaultResponseMetricEventBuilder extends AbstractMetricEventBuilde
     }
 
     private void setUserAgentProperties(String userAgentHeader) {
-        String browser = null;
         String platform = null;
         Client client = UserAgentParser.getInstance().parseUserAgent(userAgentHeader);
         if (client != null) {
-            browser = client.userAgent.family;
             platform = client.os.family;
-        }
-
-        if (browser == null || browser.isEmpty()) {
-            browser = Constants.UNKNOWN_VALUE;
         }
         if (platform == null || platform.isEmpty()) {
             platform = Constants.UNKNOWN_VALUE;
         }
-        eventMap.put(Constants.USER_AGENT, browser);
+
+        // Prefer properties.userAgent (raw UA from gateway); do not use ua_parser family ("Other")
+        String userAgent = resolveRawUserAgent(userAgentHeader);
+        eventMap.put(Constants.USER_AGENT, userAgent);
         eventMap.put(Constants.PLATFORM, platform);
+    }
+
+    /**
+     * Resolve top-level userAgent from properties.userAgent, falling back to the raw header.
+     * When reading properties.userAgent, keep only the segment before the first {@code /}.
+     */
+    private String resolveRawUserAgent(String userAgentHeader) {
+        Object propertiesObj = eventMap.get(Constants.PROPERTIES);
+        if (propertiesObj instanceof Map) {
+            Object propUa = ((Map<?, ?>) propertiesObj).get(Constants.USER_AGENT);
+            if (propUa != null) {
+                String value = String.valueOf(propUa).trim();
+                if (!value.isEmpty()) {
+                    return firstUserAgentSegment(value);
+                }
+            }
+        }
+        if (userAgentHeader != null && !userAgentHeader.isEmpty()) {
+            return firstUserAgentSegment(userAgentHeader.trim());
+        }
+        return Constants.UNKNOWN_VALUE;
+    }
+
+    /** Take the part before the first {@code /}; blank result falls back to UNKNOWN. */
+    private String firstUserAgentSegment(String userAgent) {
+        int idx = userAgent.indexOf('/');
+        String prefix = idx < 0 ? userAgent : userAgent.substring(0, idx);
+        return prefix.isEmpty() ? Constants.UNKNOWN_VALUE : prefix;
     }
 
     private void copyDefaultPropertiesToRootLevel(Map<String, Object> properties) {
